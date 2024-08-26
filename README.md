@@ -13,8 +13,8 @@
 </div>
 
 
-Wavelink is a robust and powerful Lavalink wrapper for [Discord.py](https://github.com/Rapptz/discord.py)
-Wavelink features a fully asynchronous API that's intuitive and easy to use.
+Wavelink-Disnake is a robust and powerful Lavalink wrapper for [Disnake](https://github.com/DisnakeDev/disnake)
+Wavelink-Disnake features a fully asynchronous API that's intuitive and easy to use.
 
 
 # Migrating from Version 2 to Version 3:
@@ -24,6 +24,7 @@ Wavelink features a fully asynchronous API that's intuitive and easy to use.
 
 ### Features
 
+- Discord.py yo Disnake
 - Full asynchronous design.
 - Lavalink v4+ Supported with REST API.
 - discord.py v2.0.0+ Support.
@@ -59,19 +60,19 @@ For support using WaveLink, please join the official [Support Server](https://di
 
 
 ```sh
-py -3.10 -m pip install -U wavelink
+pip install git+https://github.com/Synth-discord-bot/Wavelink-Disnake
 ```
 
 **Linux**
 
 ```sh
-python3.10 -m pip install -U wavelink
+pip install git+https://github.com/Synth-discord-bot/Wavelink-Disnake
 ```
 
 **Virtual Environments**
 
 ```sh
-pip install -U wavelink
+pip install git+https://github.com/Synth-discord-bot/Wavelink-Disnake
 ```
 
 
@@ -88,3 +89,8 @@ For spotify support, simply install and use [LavaSrc](https://github.com/topi314
 - Wavelink **3** is compatible with Lavalink **v4+**.
 - Wavelink has built in support for Lavalink Plugins including LavaSrc and SponsorBlock.
 - Wavelink is fully typed in compliance with Pyright Strict, though some nuances remain between discord.py and wavelink.
+
+
+```
+Fork of: https://github.com/PythonistaGuild/Wavelink
+```
