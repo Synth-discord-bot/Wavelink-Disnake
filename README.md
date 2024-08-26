@@ -16,12 +16,6 @@
 Wavelink-Disnake is a robust and powerful Lavalink wrapper for [Disnake](https://github.com/DisnakeDev/disnake)
 Wavelink-Disnake features a fully asynchronous API that's intuitive and easy to use.
 
-
-# Migrating from Version 2 to Version 3:
-
-[Migrating Guide](https://wavelink.dev/en/latest/migrating.html)
-
-
 ### Features
 
 - Discord.py yo Disnake
@@ -40,21 +34,21 @@ Wavelink-Disnake features a fully asynchronous API that's intuitive and easy to 
 **Lavalink:** [GitHub](https://github.com/lavalink-devs/Lavalink/releases), [Webpage](https://lavalink.dev)
 
 
-## Documentation
+## Wavelink Discord.py Documentation (same here)
 
 [Official Documentation](https://wavelink.dev/en/latest)
 
 ## Support
 
-For support using WaveLink, please join the official [Support Server](https://discord.gg/RAKc3HF) on
+For support using Discord WaveLink, please join the [Synth Server](https://discord.gg/zudMWd2eur) on
 [Discord](https://discordapp.com)
 
-[![Discord Banner](https://discordapp.com/api/guilds/490948346773635102/widget.png?style=banner2)](https://discord.gg/RAKc3HF)
+[![Discord Banner](https://discordapp.com/api/guilds/1109511263509291098/widget.png?style=banner2)](https://discord.gg/zudMWd2eur)
 
 
 ## Installation
 
-**WaveLink 3 requires Python 3.10+**
+**WaveLink-Disnake 3 requires Python 3.10+**
 
 **Windows**
 
@@ -78,7 +72,7 @@ pip install git+https://github.com/Synth-discord-bot/Wavelink-Disnake
 
 ## Lavalink
 
-Wavelink **3** requires **Lavalink v4**.
+Wavelink-Disnake **3** requires **Lavalink v4**.
 See: [Lavalink](https://github.com/lavalink-devs/Lavalink/releases)
 
 For spotify support, simply install and use [LavaSrc](https://github.com/topi314/LavaSrc) with your `wavelink.Playable`
