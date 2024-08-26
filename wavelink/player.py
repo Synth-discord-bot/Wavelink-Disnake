@@ -31,9 +31,9 @@ import time
 from typing import TYPE_CHECKING, Any, TypeAlias
 
 import async_timeout
-import discord
-from discord.abc import Connectable
-from discord.utils import MISSING
+import disnake
+from disnake.abc import Connectable
+from disnake.utils import MISSING
 
 import wavelink
 
@@ -59,10 +59,9 @@ from .tracks import Playable, Playlist
 if TYPE_CHECKING:
     from collections import deque
 
-    from discord.abc import Connectable
-    from discord.types.voice import (
-        GuildVoiceState as GuildVoiceStatePayload,
-        VoiceServerUpdate as VoiceServerUpdatePayload,
+    from disnake.abc import Connectable
+    from disnake.types.voice import (
+        GuildVoiceState as GuildVoiceStatePayload
     )
     from typing_extensions import Self
 
@@ -75,7 +74,7 @@ if TYPE_CHECKING:
     from .types.request import Request as RequestPayload
     from .types.state import PlayerVoiceState, VoiceState
 
-    VocalGuildChannel = discord.VoiceChannel | discord.StageChannel
+    VocalGuildChannel = disnake.VoiceChannel | disnake.StageChannel
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -83,7 +82,7 @@ logger: logging.Logger = logging.getLogger(__name__)
 T_a: TypeAlias = list[Playable] | Playlist
 
 
-class Player(discord.VoiceProtocol):
+class Player(disnake.VoiceProtocol):
     """The Player is a :class:`discord.VoiceProtocol` used to connect your :class:`discord.Client` to a
     :class:`discord.VoiceChannel`.
 
@@ -105,7 +104,7 @@ class Player(discord.VoiceProtocol):
 
     channel: VocalGuildChannel
 
-    def __call__(self, client: discord.Client, channel: VocalGuildChannel) -> Self:
+    def __call__(self, client: disnake.Client, channel: VocalGuildChannel) -> Self:
         super().__init__(client, channel)
 
         self._guild = channel.guild
@@ -113,12 +112,12 @@ class Player(discord.VoiceProtocol):
         return self
 
     def __init__(
-        self, client: discord.Client = MISSING, channel: Connectable = MISSING, *, nodes: list[Node] | None = None
+        self, client: disnake.Client = MISSING, channel: Connectable = MISSING, *, nodes: list[Node] | None = None
     ) -> None:
         super().__init__(client, channel)
 
-        self.client: discord.Client = client
-        self._guild: discord.Guild | None = None
+        self.client: disnake.Client = client
+        self._guild: disnake.Guild | None = None
 
         self._voice_state: PlayerVoiceState = {"voice": {}}
 
@@ -549,7 +548,7 @@ class Player(discord.VoiceProtocol):
         return self._node
 
     @property
-    def guild(self) -> discord.Guild | None:
+    def guild(self) -> disnake.Guild | None:
         """Returns the :class:`Player`'s associated :class:`discord.Guild`.
 
         Could be None if this :class:`Player` has not been connected.
@@ -671,7 +670,7 @@ class Player(discord.VoiceProtocol):
         self._voice_state["voice"]["session_id"] = data["session_id"]
         self.channel = self.client.get_channel(int(channel_id))  # type: ignore
 
-    async def on_voice_server_update(self, data: VoiceServerUpdatePayload, /) -> None:
+    async def on_voice_server_update(self, data, /) -> None:
         self._voice_state["voice"]["token"] = data["token"]
         self._voice_state["voice"]["endpoint"] = data["endpoint"]
 
@@ -772,7 +771,7 @@ class Player(discord.VoiceProtocol):
             raise InvalidChannelStateException("Player tried to move without a valid guild.")
 
         self._connection_event.clear()
-        voice: discord.VoiceState | None = self.guild.me.voice
+        voice: disnake.VoiceState | None = self.guild.me.voice
 
         if self_deaf is None and voice:
             self_deaf = voice.self_deaf
