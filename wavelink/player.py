@@ -55,7 +55,6 @@ from .payloads import (
 from .queue import Queue
 from .tracks import Playable, Playlist
 
-
 if TYPE_CHECKING:
     from collections import deque
 
@@ -77,7 +76,6 @@ if TYPE_CHECKING:
     VocalGuildChannel = disnake.VoiceChannel | disnake.StageChannel
 
 logger: logging.Logger = logging.getLogger(__name__)
-
 
 T_a: TypeAlias = list[Playable] | Playlist
 
@@ -118,6 +116,9 @@ class Player(disnake.VoiceProtocol):
 
         self.client: disnake.Client = client
         self._guild: disnake.Guild | None = None
+
+        # main message, where music is executed
+        self._main_message: disnake.Message | None = None
 
         self._voice_state: PlayerVoiceState = {"voice": {}}
 
@@ -396,7 +397,7 @@ class Player(disnake.VoiceProtocol):
 
         # Possibly adjust these thresholds?
         history: list[Playable] = (
-            self.auto_queue[:40] + self.queue[:40] + self.queue.history[:-41:-1] + self.auto_queue.history[:-61:-1]
+                self.auto_queue[:40] + self.queue[:40] + self.queue.history[:-41:-1] + self.auto_queue.history[:-61:-1]
         )
 
         added: int = 0
@@ -650,6 +651,18 @@ class Player(disnake.VoiceProtocol):
 
         position: int = int((time.monotonic_ns() - self._last_update) / 1000000) + self._last_position
         return min(position, self.current.length)
+
+    @property
+    def main_message(self) -> disnake.Message | None:
+        """Returns the text channel where the player is connected to.
+
+        Could be None if this :class:`Player` has not been connected.
+        """
+        return self._main_message
+
+    @main_message.setter
+    def main_message(self, message: disnake.Message | None) -> None:
+        self._main_message = message
 
     async def _update_event(self, payload: PlayerUpdateEventPayload) -> None:
         # Convert nanoseconds into milliseconds...
