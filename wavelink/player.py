@@ -59,9 +59,7 @@ if TYPE_CHECKING:
     from collections import deque
 
     from disnake.abc import Connectable
-    from disnake.types.voice import (
-        GuildVoiceState as GuildVoiceStatePayload
-    )
+    from disnake.types.voice import GuildVoiceState as GuildVoiceStatePayload
     from typing_extensions import Self
 
     from .node import Node
@@ -110,7 +108,11 @@ class Player(disnake.VoiceProtocol):
         return self
 
     def __init__(
-        self, client: disnake.Client = MISSING, channel: Connectable = MISSING, *, nodes: list[Node] | None = None
+        self,
+        client: disnake.Client = MISSING,
+        channel: Connectable = MISSING,
+        *,
+        nodes: list[Node] | None = None,
     ) -> None:
         super().__init__(client, channel)
 
@@ -154,13 +156,17 @@ class Player(disnake.VoiceProtocol):
         self._history_count: int | None = None
 
         self._autoplay: AutoPlayMode = AutoPlayMode.disabled
-        self.__previous_seeds: asyncio.Queue[str] = asyncio.Queue(maxsize=self._previous_seeds_cutoff)
+        self.__previous_seeds: asyncio.Queue[str] = asyncio.Queue(
+            maxsize=self._previous_seeds_cutoff
+        )
 
         self._auto_lock: asyncio.Lock = asyncio.Lock()
         self._error_count: int = 0
 
         self._inactive_channel_limit: int | None = self._node._inactive_channel_tokens
-        self._inactive_channel_count: int = self._inactive_channel_limit if self._inactive_channel_limit else 0
+        self._inactive_channel_count: int = (
+            self._inactive_channel_limit if self._inactive_channel_limit else 0
+        )
 
         self._filters: Filters = Filters()
 
@@ -178,25 +184,38 @@ class Player(disnake.VoiceProtocol):
             result = False
 
         if cancelled or result is False:
-            logger.debug("Disregarding Inactivity Check Task <%s> as it was previously cancelled.", task.get_name())
+            logger.debug(
+                "Disregarding Inactivity Check Task <%s> as it was previously cancelled.",
+                task.get_name(),
+            )
             return
 
         if result is not True:
-            logger.debug("Disregarding Inactivity Check Task <%s> as it received an unknown result.", task.get_name())
+            logger.debug(
+                "Disregarding Inactivity Check Task <%s> as it received an unknown result.",
+                task.get_name(),
+            )
             return
 
         if not self._guild:
-            logger.debug("Disregarding Inactivity Check Task <%s> as it has no guild.", task.get_name())
+            logger.debug(
+                "Disregarding Inactivity Check Task <%s> as it has no guild.",
+                task.get_name(),
+            )
             return
 
         if self.playing:
             logger.debug(
-                "Disregarding Inactivity Check Task <%s> as Player <%s> is playing.", task.get_name(), self._guild.id
+                "Disregarding Inactivity Check Task <%s> as Player <%s> is playing.",
+                task.get_name(),
+                self._guild.id,
             )
             return
 
         self.client.dispatch("wavelink_inactive_player", self)
-        logger.debug('Dispatched "on_wavelink_inactive_player" for Player <%s>.', self._guild.id)
+        logger.debug(
+            'Dispatched "on_wavelink_inactive_player" for Player <%s>.', self._guild.id
+        )
 
     async def _inactivity_runner(self, wait: int) -> bool:
         try:
@@ -217,7 +236,9 @@ class Player(disnake.VoiceProtocol):
 
     def _inactivity_start(self) -> None:
         if self._inactivity_wait is not None and self._inactivity_wait > 0:
-            self._inactivity_task = asyncio.create_task(self._inactivity_runner(self._inactivity_wait))
+            self._inactivity_task = asyncio.create_task(
+                self._inactivity_runner(self._inactivity_wait)
+            )
             self._inactivity_task.add_done_callback(self._inactivity_task_callback)
 
     async def _track_start(self, payload: TrackStartEventPayload) -> None:
@@ -229,7 +250,9 @@ class Player(disnake.VoiceProtocol):
 
         members: int = len([m for m in self.channel.members if not m.bot])
         self._inactive_channel_count = (
-            self._inactive_channel_count - 1 if not members else self._inactive_channel_limit or 0
+            self._inactive_channel_count - 1
+            if not members
+            else self._inactive_channel_limit or 0
         )
 
         if self._inactive_channel_limit and self._inactive_channel_count <= 0:
@@ -262,13 +285,15 @@ class Player(disnake.VoiceProtocol):
 
         if self.node.status is not NodeStatus.CONNECTED:
             logger.warning(
-                '"Unable to use AutoPlay on Player for Guild "%s" due to disconnected Node.', str(self.guild)
+                '"Unable to use AutoPlay on Player for Guild "%s" due to disconnected Node.',
+                str(self.guild),
             )
             return
 
         if not isinstance(self.queue, Queue) or not isinstance(self.auto_queue, Queue):  # type: ignore
             logger.warning(
-                '"Unable to use AutoPlay on Player for Guild "%s" due to unsupported Queue.', str(self.guild)
+                '"Unable to use AutoPlay on Player for Guild "%s" due to unsupported Queue.',
+                str(self.guild),
             )
             self._inactivity_start()
             return
@@ -276,7 +301,9 @@ class Player(disnake.VoiceProtocol):
         if self.queue.mode is QueueMode.loop:
             await self._do_partial(history=False)
 
-        elif self.queue.mode is QueueMode.loop_all or (self._autoplay is AutoPlayMode.partial or self.queue):
+        elif self.queue.mode is QueueMode.loop_all or (
+            self._autoplay is AutoPlayMode.partial or self.queue
+        ):
             await self._do_partial()
 
         elif self._autoplay is AutoPlayMode.enabled:
@@ -318,13 +345,24 @@ class Player(disnake.VoiceProtocol):
             await self.play(track, add_history=False)
             return
 
-        weighted_history: list[Playable] = self.queue.history[::-1][: max(5, 5 * self._auto_weight)]
-        weighted_upcoming: list[Playable] = self.auto_queue[: max(3, int((5 * self._auto_weight) / 3))]
-        choices: list[Playable | None] = [*weighted_history, *weighted_upcoming, self._current, self._previous]
+        weighted_history: list[Playable] = self.queue.history[::-1][
+            : max(5, 5 * self._auto_weight)
+        ]
+        weighted_upcoming: list[Playable] = self.auto_queue[
+            : max(3, int((5 * self._auto_weight) / 3))
+        ]
+        choices: list[Playable | None] = [
+            *weighted_history,
+            *weighted_upcoming,
+            self._current,
+            self._previous,
+        ]
 
         # Filter out tracks which are None...
         _previous: deque[str] = self.__previous_seeds._queue  # type: ignore
-        seeds: list[Playable] = [t for t in choices if t is not None and t.identifier not in _previous]
+        seeds: list[Playable] = [
+            t for t in choices if t is not None and t.identifier not in _previous
+        ]
         random.shuffle(seeds)
 
         if populate_track:
@@ -337,7 +375,11 @@ class Player(disnake.VoiceProtocol):
         youtube_query: str | None = None
 
         count: int = len(self.queue.history)
-        changed_by: int = min(3, count) if self._history_count is None else count - self._history_count
+        changed_by: int = (
+            min(3, count)
+            if self._history_count is None
+            else count - self._history_count
+        )
 
         if changed_by > 0:
             self._history_count = count
@@ -367,7 +409,9 @@ class Player(disnake.VoiceProtocol):
 
         if youtube:
             ytm_seed: str = youtube[0]
-            youtube_query = f"https://music.youtube.com/watch?v={ytm_seed}8&list=RD{ytm_seed}"
+            youtube_query = (
+                f"https://music.youtube.com/watch?v={ytm_seed}8&list=RD{ytm_seed}"
+            )
             self._add_to_previous_seeds(ytm_seed)
 
         async def _search(query: str | None) -> T_a:
@@ -375,29 +419,40 @@ class Player(disnake.VoiceProtocol):
                 return []
 
             try:
-                search: wavelink.Search = await Pool.fetch_tracks(query, node=self._node)
+                search: wavelink.Search = await Pool.fetch_tracks(
+                    query, node=self._node
+                )
             except (LavalinkLoadException, LavalinkException):
                 return []
 
             if not search:
                 return []
 
-            tracks: list[Playable] = search.tracks.copy() if isinstance(search, Playlist) else search
+            tracks: list[Playable] = (
+                search.tracks.copy() if isinstance(search, Playlist) else search
+            )
             return tracks
 
-        results: tuple[T_a, T_a] = await asyncio.gather(_search(spotify_query), _search(youtube_query))
+        results: tuple[T_a, T_a] = await asyncio.gather(
+            _search(spotify_query), _search(youtube_query)
+        )
 
         # track for result in results for track in result...
         filtered_r: list[Playable] = [t for r in results for t in r]
 
         if not filtered_r and not self.auto_queue:
-            logger.info('Player "%s" could not load any songs via AutoPlay.', self.guild.id)
+            logger.info(
+                'Player "%s" could not load any songs via AutoPlay.', self.guild.id
+            )
             self._inactivity_start()
             return
 
         # Possibly adjust these thresholds?
         history: list[Playable] = (
-                self.auto_queue[:40] + self.queue[:40] + self.queue.history[:-41:-1] + self.auto_queue.history[:-61:-1]
+            self.auto_queue[:40]
+            + self.queue[:40]
+            + self.queue.history[:-41:-1]
+            + self.auto_queue.history[:-61:-1]
         )
 
         added: int = 0
@@ -413,7 +468,11 @@ class Player(disnake.VoiceProtocol):
             if added >= max_population_:
                 break
 
-        logger.debug('Player "%s" added "%s" tracks to the auto_queue via AutoPlay.', self.guild.id, added)
+        logger.debug(
+            'Player "%s" added "%s" tracks to the auto_queue via AutoPlay.',
+            self.guild.id,
+            added,
+        )
 
         if not self._current and not populate_track:
             try:
@@ -422,7 +481,9 @@ class Player(disnake.VoiceProtocol):
 
                 await self.play(now, add_history=False)
             except wavelink.QueueEmpty:
-                logger.info('Player "%s" could not load any songs via AutoPlay.', self.guild.id)
+                logger.info(
+                    'Player "%s" could not load any songs via AutoPlay.', self.guild.id
+                )
                 self._inactivity_start()
 
     @property
@@ -509,7 +570,9 @@ class Player(disnake.VoiceProtocol):
             return
 
         if value < 10:
-            logger.warning('Setting "inactive_timeout" below 10 seconds may result in unwanted side effects.')
+            logger.warning(
+                'Setting "inactive_timeout" below 10 seconds may result in unwanted side effects.'
+            )
 
         self._inactivity_wait = value
         self._inactivity_cancel()
@@ -649,7 +712,10 @@ class Player(disnake.VoiceProtocol):
         if self.paused:
             return self._last_position
 
-        position: int = int((time.monotonic_ns() - self._last_update) / 1000000) + self._last_position
+        position: int = (
+            int((time.monotonic_ns() - self._last_update) / 1000000)
+            + self._last_position
+        )
         return min(position, self.current.length)
 
     @property
@@ -671,7 +737,7 @@ class Player(disnake.VoiceProtocol):
 
         self._ping = payload.ping
 
-    async def on_voice_state_update(self, data: GuildVoiceStatePayload, /) -> None:
+    async def on_voice_state_update(self, data: GuildVoiceStatePayload, /) -> None:  # type: ignore
         channel_id = data["channel_id"]
 
         if not channel_id:
@@ -683,7 +749,7 @@ class Player(disnake.VoiceProtocol):
         self._voice_state["voice"]["session_id"] = data["session_id"]
         self.channel = self.client.get_channel(int(channel_id))  # type: ignore
 
-    async def on_voice_server_update(self, data, /) -> None:
+    async def on_voice_server_update(self, data, /) -> None:  # type: ignore
         self._voice_state["voice"]["token"] = data["token"]
         self._voice_state["voice"]["endpoint"] = data["endpoint"]
 
@@ -700,7 +766,9 @@ class Player(disnake.VoiceProtocol):
         if not session_id or not token or not endpoint:
             return
 
-        request: RequestPayload = {"voice": {"sessionId": session_id, "token": token, "endpoint": endpoint}}
+        request: RequestPayload = {
+            "voice": {"sessionId": session_id, "token": token, "endpoint": endpoint}
+        }
 
         try:
             await self.node._update_player(self.guild.id, data=request)
@@ -712,7 +780,12 @@ class Player(disnake.VoiceProtocol):
         logger.debug("Player %s is dispatching VOICE_UPDATE.", self.guild.id)
 
     async def connect(
-        self, *, timeout: float = 10.0, reconnect: bool, self_deaf: bool = False, self_mute: bool = False
+        self,
+        *,
+        timeout: float = 10.0,
+        reconnect: bool,
+        self_deaf: bool = False,
+        self_mute: bool = False,
     ) -> None:
         """
 
@@ -732,8 +805,12 @@ class Player(disnake.VoiceProtocol):
             You tried to connect this player without an appropriate voice channel.
         """
         if self.channel is MISSING:
-            msg: str = 'Please use "discord.VoiceChannel.connect(cls=...)" and pass this Player to cls.'
-            raise InvalidChannelStateException(f"Player tried to connect without a valid channel: {msg}")
+            msg: str = (
+                'Please use "discord.VoiceChannel.connect(cls=...)" and pass this Player to cls.'
+            )
+            raise InvalidChannelStateException(
+                f"Player tried to connect without a valid channel: {msg}"
+            )
 
         if not self._guild:
             self._guild = self.channel.guild
@@ -741,7 +818,9 @@ class Player(disnake.VoiceProtocol):
         self.node._players[self._guild.id] = self
 
         assert self.guild is not None
-        await self.guild.change_voice_state(channel=self.channel, self_mute=self_mute, self_deaf=self_deaf)
+        await self.guild.change_voice_state(
+            channel=self.channel, self_mute=self_mute, self_deaf=self_deaf
+        )
 
         try:
             async with async_timeout.timeout(timeout):
@@ -781,7 +860,9 @@ class Player(disnake.VoiceProtocol):
             You tried to connect this player without an appropriate guild.
         """
         if not self.guild:
-            raise InvalidChannelStateException("Player tried to move without a valid guild.")
+            raise InvalidChannelStateException(
+                "Player tried to move without a valid guild."
+            )
 
         self._connection_event.clear()
         voice: disnake.VoiceState | None = self.guild.me.voice
@@ -795,7 +876,9 @@ class Player(disnake.VoiceProtocol):
         self_deaf = bool(self_deaf)
         self_mute = bool(self_mute)
 
-        await self.guild.change_voice_state(channel=channel, self_mute=self_mute, self_deaf=self_deaf)
+        await self.guild.change_voice_state(
+            channel=channel, self_mute=self_mute, self_deaf=self_deaf
+        )
 
         if channel is None:
             return
@@ -938,7 +1021,9 @@ class Player(disnake.VoiceProtocol):
             self.queue.history.put(track)
 
         if populate:
-            await self._do_recommendation(populate_track=track, max_population=max_populate)
+            await self._do_recommendation(
+                populate_track=track, max_population=max_populate
+            )
 
         return track
 
@@ -985,7 +1070,9 @@ class Player(disnake.VoiceProtocol):
         request: RequestPayload = {"position": position}
         await self.node._update_player(self.guild.id, data=request)
 
-    async def set_filters(self, filters: Filters | None = None, /, *, seek: bool = False) -> None:
+    async def set_filters(
+        self, filters: Filters | None = None, /, *, seek: bool = False
+    ) -> None:
         """Set the :class:`wavelink.Filters` on the player.
 
         Parameters
